@@ -1,0 +1,84 @@
+int IN1 = 13;//para controlar sentido giro motor izquierdo
+int IN2 = 12;//para controlar sentido giro motor izquierdo
+
+int IN3 = 11;//para controlar sentido giro motor derecho
+int IN4 = 10;//para controlar sentido giro motor derecho
+
+int lecturaSensorIzq;
+int lecturaSensorDer;
+
+int SenIzqPin = A1;
+int SenDerPin = A2;
+
+void setup(){
+  
+ pinMod(IN1 ,OUTPUT);
+ pinMod(IN2 ,OUTPUT);
+ pinMod(IN3 ,OUTPUT); 
+ pinMod(IN3 ,OUTPUT);
+
+ pinMode(SIzqPin  , INPUT) ;
+ pinMode(SDerPin  , INPUT) ;
+  
+ Serial.begin(9600);
+  
+}
+
+voidloop{
+  
+}
+
+void lecturaSensorIR(){
+  
+}
+
+
+
+void robotAvance(){
+  //  Motor izquierdo
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+   // Motor derecho
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+}
+
+
+void robotRetroceso(){
+  //  Motor izquierdo
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+   // Motor derecho
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+}
+
+
+void robotDerecha(){
+  //  Motor izquierdo
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+   // Motor derecho
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+}
+
+
+void robotIzquierda (){
+  //  Motor izquierdo
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+   // Motor derecho
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+}
+
+
+void robotParar(){
+  //  Motor izquierdo
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+   // Motor derecho
+  digitalWrite (IN1, );
+  digitalWrite (IN2, );
+}
