@@ -16,5 +16,5 @@ El Proceso del proyecto:
        -cambiar el proyecto de un coche normal a un COCHE SEGUIDOR DE LÍNEAS.
        -montar el coche seguidor de líneas.
        -hacer un codico (Version 3) para el nuevo proyecto.
-
+       -Faltar probar el codigo.
 12/12/2025:
