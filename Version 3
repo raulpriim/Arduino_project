@@ -1,11 +1,3 @@
-/*
-   COCHE SEGUIDOR DE LÍNEAS CON 3 SENSORES
-   Conexiones específicas según tu tabla
-*/
-
-// ============================================
-// DEFINICIÓN DE PINES - SEGÚN TU TABLA
-// ============================================
 
 // SENSORES SIGUELINEAS (3 sensores - entradas digitales)
 #define S_I  6    // Sensor izquierdo - D6
@@ -23,16 +15,14 @@
 #define LR_I 8    // LED rojo izquierdo - D8
 #define LV   0    // LED verde central - D0
 
-// ULTRASONIDOS (si los usas después)
+// ULTRASONIDOS (si los usamos después)
 #define DISP 11   // Trigger ultrasonido - D11
 #define ECO  10   // Echo ultrasonido - D10
 
-// RECEPTOR INFRARROJOS (si lo usas después)
+// RECEPTOR INFRARROJOS (si lo usamos después)
 #define ENT  9    // Receptor IR - D9
 
-// ============================================
-// VARIABLES GLOBALES
-// ============================================
+
 
 int estado = 0;           // Estado de la máquina de estados
 int velocidadBase = 200;  // Velocidad (ajustable)
@@ -65,7 +55,7 @@ void setup() {
   pinMode(LR_I, OUTPUT);
   pinMode(LV, OUTPUT);
   
-  // Ultrasonidos (si los usas) - descomentar después
+  // Ultrasonidos (si los usamos) - descomentar después
   // pinMode(DISP, OUTPUT);
   // pinMode(ECO, INPUT);
   
