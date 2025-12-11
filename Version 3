@@ -266,14 +266,26 @@ void buscarLinea() {
 // ============================================
 
 void actualizarLEDs() {
-  // LED rojo izquierdo = sensor izquierdo
-  digitalWrite(LR_I, sensorI ? HIGH : LOW);
+  // LED izquierdo
+  if (sensorI == true) {
+    digitalWrite(LR_I, HIGH);  // Enciende si ve negro
+  } else {
+    digitalWrite(LR_I, LOW);   // Apaga si ve blanco
+  }
   
-  // LED rojo derecho = sensor derecho
-  digitalWrite(LR_D, sensorD ? HIGH : LOW);
+  // LED central
+  if (sensorC == true) {
+    digitalWrite(LV, HIGH);
+  } else {
+    digitalWrite(LV, LOW);
+  }
   
-  // LED verde central = sensor central
-  digitalWrite(LV, sensorC ? HIGH : LOW);
+  // LED derecho
+  if (sensorD == true) {
+    digitalWrite(LR_D, HIGH);
+  } else {
+    digitalWrite(LR_D, LOW);
+  }
 }
 
 void apagarLEDs() {
