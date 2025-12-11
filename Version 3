@@ -1,0 +1,357 @@
+/*
+   COCHE SEGUIDOR DE LÍNEAS CON 3 SENSORES
+   Conexiones específicas según tu tabla
+*/
+
+// ============================================
+// DEFINICIÓN DE PINES - SEGÚN TU TABLA
+// ============================================
+
+// SENSORES SIGUELINEAS (3 sensores - entradas digitales)
+#define S_I  6    // Sensor izquierdo - D6
+#define S_C  12   // Sensor central   - D12
+#define S_D  7    // Sensor derecho   - D7
+
+// MOTORES CON L298N
+#define MD_F 3    // Motor derecho adelante - D3
+#define MD_B 2    // Motor derecho atrás    - D2
+#define MI_F 5    // Motor izquierdo adelante - D5
+#define MI_B 4    // Motor izquierdo atrás  - D4
+
+// LEDS INDICADORES
+#define LR_D 1    // LED rojo derecho - D1
+#define LR_I 8    // LED rojo izquierdo - D8
+#define LV   0    // LED verde central - D0
+
+// ULTRASONIDOS (si los usas después)
+#define DISP 11   // Trigger ultrasonido - D11
+#define ECO  10   // Echo ultrasonido - D10
+
+// RECEPTOR INFRARROJOS (si lo usas después)
+#define ENT  9    // Receptor IR - D9
+
+// ============================================
+// VARIABLES GLOBALES
+// ============================================
+
+int estado = 0;           // Estado de la máquina de estados
+int velocidadBase = 200;  // Velocidad (ajustable)
+
+// Lecturas de sensores
+bool sensorD, sensorC, sensorI;
+
+// ============================================
+// CONFIGURACIÓN INICIAL
+// ============================================
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("COCHE SEGUIDOR DE LINEAS - 3 SENSORES");
+  Serial.println("Conectado segun tabla proporcionada");
+  
+  // Configurar SENSORES como ENTRADAS
+  pinMode(S_I, INPUT);
+  pinMode(S_C, INPUT);
+  pinMode(S_D, INPUT);
+  
+  // Configurar MOTORES como SALIDAS
+  pinMode(MD_F, OUTPUT);
+  pinMode(MD_B, OUTPUT);
+  pinMode(MI_F, OUTPUT);
+  pinMode(MI_B, OUTPUT);
+  
+  // Configurar LEDS como SALIDAS
+  pinMode(LR_D, OUTPUT);
+  pinMode(LR_I, OUTPUT);
+  pinMode(LV, OUTPUT);
+  
+  // Ultrasonidos (si los usas) - descomentar después
+  // pinMode(DISP, OUTPUT);
+  // pinMode(ECO, INPUT);
+  
+  // Iniciar con todo apagado
+  pararMotores();
+  apagarLEDs();
+  
+  // Secuencia de inicio
+  secuenciaInicio();
+  
+  delay(2000); // Espera antes de empezar
+  Serial.println("Listo para seguir linea!");
+}
+
+// ============================================
+// BUCLE PRINCIPAL
+// ============================================
+
+void loop() {
+  // 1. LEER SENSORES
+  leerSensores();
+  
+  // 2. ACTUALIZAR LEDs (muestra lo que ven los sensores)
+  actualizarLEDs();
+  
+  // 3. EJECUTAR LÓGICA DE SEGUIMIENTO
+  seguirLinea();
+  
+  // 4. PEQUEÑA PAUSA
+  delay(10);
+}
+
+// ============================================
+// FUNCIONES PRINCIPALES
+// ============================================
+
+void leerSensores() {
+  // Leer sensores (0 = blanco, 1 = negro normalmente)
+  // INVERTIR si tus sensores dan 1 en blanco y 0 en negro
+  sensorI = digitalRead(S_I);
+  sensorC = digitalRead(S_C);
+  sensorD = digitalRead(S_D);
+  
+  // Para depuración
+  Serial.print("Sensores [I:C:D] = ");
+  Serial.print(sensorI);
+  Serial.print(" ");
+  Serial.print(sensorC);
+  Serial.print(" ");
+  Serial.println(sensorD);
+}
+
+void seguirLinea() {
+  // LÓGICA MEJORADA CON 3 SENSORES
+  
+  // CASO 1: Todos en blanco - perdimos la línea
+  if (!sensorI && !sensorC && !sensorD) {
+    Serial.println("Perdida de linea - BUSCANDO");
+    buscarLinea();
+  }
+  
+  // CASO 2: Solo central en negro - AVANZAR
+  else if (!sensorI && sensorC && !sensorD) {
+    Serial.println("Recto");
+    avanzar();
+  }
+  
+  // CASO 3: Solo izquierdo en negro - GIRAR IZQUIERDA
+  else if (sensorI && !sensorC && !sensorD) {
+    Serial.println("Girando IZQUIERDA");
+    girarIzquierda();
+  }
+  
+  // CASO 4: Solo derecho en negro - GIRAR DERECHA
+  else if (!sensorI && !sensorC && sensorD) {
+    Serial.println("Girando DERECHA");
+    girarDerecha();
+  }
+  
+  // CASO 5: Izquierdo y central en negro - GIRAR SUAVE IZQUIERDA
+  else if (sensorI && sensorC && !sensorD) {
+    Serial.println("Giro suave IZQUIERDA");
+    avanzarSuaveIzquierda();
+  }
+  
+  // CASO 6: Derecho y central en negro - GIRAR SUAVE DERECHA
+  else if (!sensorI && sensorC && sensorD) {
+    Serial.println("Giro suave DERECHA");
+    avanzarSuaveDerecha();
+  }
+  
+  // CASO 7: Los tres en negro - CRUCE o LÍNEA ANCHA
+  else if (sensorI && sensorC && sensorD) {
+    Serial.println("Cruce detectado - AVANZAR");
+    avanzar();
+    delay(300); // Avanzar un poco en el cruce
+  }
+  
+  // CASO 8: Izquierdo y derecho (sin central) - LÍNEA ROTA
+  else if (sensorI && !sensorC && sensorD) {
+    Serial.println("Linea rota - AVANZAR con cuidado");
+    avanzar();
+    delay(100);
+  }
+}
+
+// ============================================
+// FUNCIONES DE CONTROL DE MOTORES
+// ============================================
+
+void avanzar() {
+  // Motor izquierdo ADELANTE
+  digitalWrite(MI_F, HIGH);
+  digitalWrite(MI_B, LOW);
+  
+  // Motor derecho ADELANTE
+  digitalWrite(MD_F, HIGH);
+  digitalWrite(MD_B, LOW);
+}
+
+void avanzarSuaveIzquierda() {
+  // Izquierdo más lento, derecho normal
+  // Motor izquierdo ADELANTE (pulsos)
+  digitalWrite(MI_F, HIGH);
+  digitalWrite(MI_B, LOW);
+  delay(30);
+  digitalWrite(MI_F, LOW);
+  delay(10);
+  
+  // Motor derecho ADELANTE continuo
+  digitalWrite(MD_F, HIGH);
+  digitalWrite(MD_B, LOW);
+}
+
+void avanzarSuaveDerecha() {
+  // Derecho más lento, izquierdo normal
+  // Motor izquierdo ADELANTE continuo
+  digitalWrite(MI_F, HIGH);
+  digitalWrite(MI_B, LOW);
+  
+  // Motor derecho ADELANTE (pulsos)
+  digitalWrite(MD_F, HIGH);
+  digitalWrite(MD_B, LOW);
+  delay(30);
+  digitalWrite(MD_F, LOW);
+  delay(10);
+}
+
+void girarIzquierda() {
+  // Giro cerrado izquierda
+  // Motor izquierdo ATRÁS
+  digitalWrite(MI_F, LOW);
+  digitalWrite(MI_B, HIGH);
+  
+  // Motor derecho ADELANTE
+  digitalWrite(MD_F, HIGH);
+  digitalWrite(MD_B, LOW);
+}
+
+void girarDerecha() {
+  // Giro cerrado derecha
+  // Motor izquierdo ADELANTE
+  digitalWrite(MI_F, HIGH);
+  digitalWrite(MI_B, LOW);
+  
+  // Motor derecho ATRÁS
+  digitalWrite(MD_F, LOW);
+  digitalWrite(MD_B, HIGH);
+}
+
+void retroceder() {
+  // Motor izquierdo ATRÁS
+  digitalWrite(MI_F, LOW);
+  digitalWrite(MI_B, HIGH);
+  
+  // Motor derecho ATRÁS
+  digitalWrite(MD_F, LOW);
+  digitalWrite(MD_B, HIGH);
+}
+
+void pararMotores() {
+  digitalWrite(MI_F, LOW);
+  digitalWrite(MI_B, LOW);
+  digitalWrite(MD_F, LOW);
+  digitalWrite(MD_B, LOW);
+}
+
+void buscarLinea() {
+  // Cuando pierde la línea, gira para buscarla
+  Serial.println("Buscando linea...");
+  
+  // Gira izquierda un momento
+  girarIzquierda();
+  delay(300);
+  
+  // Si no encuentra, gira derecha
+  leerSensores();
+  if (!sensorI && !sensorC && !sensorD) {
+    girarDerecha();
+    delay(600); // Gira el doble al otro lado
+  }
+  
+  pararMotores();
+}
+
+// ============================================
+// FUNCIONES DE LEDS
+// ============================================
+
+void actualizarLEDs() {
+  // LED rojo izquierdo = sensor izquierdo
+  digitalWrite(LR_I, sensorI ? HIGH : LOW);
+  
+  // LED rojo derecho = sensor derecho
+  digitalWrite(LR_D, sensorD ? HIGH : LOW);
+  
+  // LED verde central = sensor central
+  digitalWrite(LV, sensorC ? HIGH : LOW);
+}
+
+void apagarLEDs() {
+  digitalWrite(LR_I, LOW);
+  digitalWrite(LR_D, LOW);
+  digitalWrite(LV, LOW);
+}
+
+void secuenciaInicio() {
+  Serial.println("Iniciando sistema...");
+  
+  // Parpadeo de LEDs
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(LR_I, HIGH);
+    digitalWrite(LR_D, HIGH);
+    digitalWrite(LV, HIGH);
+    delay(300);
+    
+    digitalWrite(LR_I, LOW);
+    digitalWrite(LR_D, LOW);
+    digitalWrite(LV, LOW);
+    delay(300);
+  }
+  
+  // Test motores rápido
+  avanzar();
+  delay(200);
+  girarIzquierda();
+  delay(200);
+  girarDerecha();
+  delay(200);
+  retroceder();
+  delay(200);
+  pararMotores();
+}
+
+// ============================================
+// FUNCIÓN DE CALIBRACIÓN (IMPORTANTE)
+// ============================================
+
+void calibrarSensores() {
+  Serial.println("\n=== CALIBRACIÓN DE SENSORES ===");
+  Serial.println("Los sensores deben dar 1 en NEGRO y 0 en BLANCO");
+  Serial.println("Si es al revés, cambia la lógica en leerSensores()");
+  
+  Serial.println("\nColoca sobre FONDO BLANCO y presiona cualquier tecla...");
+  while(!Serial.available()) {} // Espera tecla
+  Serial.read(); // Limpia buffer
+  
+  Serial.print("Blanco - I:");
+  Serial.print(digitalRead(S_I));
+  Serial.print(" C:");
+  Serial.print(digitalRead(S_C));
+  Serial.print(" D:");
+  Serial.println(digitalRead(S_D));
+  
+  Serial.println("\nColoca sobre LÍNEA NEGRA y presiona cualquier tecla...");
+  while(!Serial.available()) {} // Espera tecla
+  Serial.read(); // Limpia buffer
+  
+  Serial.print("Negro  - I:");
+  Serial.print(digitalRead(S_I));
+  Serial.print(" C:");
+  Serial.print(digitalRead(S_C));
+  Serial.print(" D:");
+  Serial.println(digitalRead(S_D));
+  
+  Serial.println("\n=== RESULTADOS ===");
+  Serial.println("Si ves 0 en blanco y 1 en negro: PERFECTO");
+  Serial.println("Si ves 1 en blanco y 0 en negro: INVERTIR LÓGICA");
+}
